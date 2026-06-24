@@ -7,7 +7,6 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { Notice } from "@/components/Notice";
 import { GoogleButton } from "@/components/GoogleButton";
-import { getRoleRedirectPath } from "@/lib/roleRedirect";
 
 export default function LoginPage() {
   return (
@@ -30,7 +29,11 @@ function LoginContent() {
     setError("");
     try {
       const user = await login(form);
-      router.push(getRoleRedirectPath(user.role));
+      if (user.role === "user") {
+        router.push("/");
+      } else {
+        router.push(`/dashboard/${user.role}`);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -49,7 +52,7 @@ function LoginContent() {
         <label className="label">Email<input className="field" type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
         <label className="label">Password<input className="field" type="password" required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></label>
         <button className="btn btn-primary" disabled={loading}>{loading ? "Signing in..." : "Login"}</button>
-        <div className="grid gap-3 border-t border-slate-200 pt-4 justify-items-center">
+        <div className="grid gap-3 border-t border-slate-200 pt-4">
           <p className="text-center text-sm font-bold text-slate-500">Or continue with Google</p>
           <GoogleButton />
         </div>
@@ -58,6 +61,3 @@ function LoginContent() {
     </section>
   );
 }
-
-
-

@@ -43,7 +43,7 @@ export default async function Home() {
             {Array.from({ length: 6 }).map((_, index) => (
               <StaggerItem key={index}>
                 <div className="card overflow-hidden">
-                  <img src={assetFallback(index)} alt="Sample artwork" className="aspect-[4/3] w-full object-cover object-[center_25%]" />
+                  <img src={assetFallback(index)} alt="Sample artwork" className="aspect-[4/3] w-full object-contain" />
                   <div className="p-4">
                     <h3 className="font-black">Artwork collection</h3>
                     <p className="mt-1 text-sm text-slate-600">Connect the backend to load live art.</p>
@@ -72,7 +72,7 @@ export default async function Home() {
           {(artists.length ? artists : [{ name: "New artists", sales: 0 }, { name: "Fresh voices", sales: 0 }, { name: "Studio picks", sales: 0 }]).map((artist, index) => (
             <StaggerItem key={artist.artistId || artist.name}>
               <div className="card flex items-center gap-4 p-5">
-                <img src={artist.photoURL || assetFallback(index + 1)} alt={artist.name} className="h-16 w-16 rounded-full object-cover" />
+                <img src={artist.photoURL || assetFallback(index + 1)} alt={artist.name} className="h-16 w-16 rounded-full object-contain" />
                 <div>
                   <h3 className="font-black text-slate-950">{artist.name}</h3>
                   <p className="text-sm text-slate-600">{artist.sales || 0} sale(s)</p>

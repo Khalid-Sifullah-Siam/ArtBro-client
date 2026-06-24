@@ -1,13 +1,13 @@
 "use client";
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, @next/next/no-img-element */
 
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { Notice } from "@/components/Notice";
+import { Toast } from "@/components/Toast";
 import { apiFetch, assetFallback, categories, dateLabel, money, uploadImage } from "@/lib/api";
 
 export default function DashboardPage() {
@@ -207,6 +207,7 @@ export function DashboardContent({ initialTab = "overview", requiredRole = "" } 
 
   return (
     <>
+      <Toast message={error} onClose={() => setError("")} />
       <section className="border-b border-slate-200 bg-white py-8">
         <div className="container flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -224,7 +225,6 @@ export function DashboardContent({ initialTab = "overview", requiredRole = "" } 
           ))}
         </div>
         {notice && <div className="mb-4"><Notice>{notice}</Notice></div>}
-        {error && <div className="mb-4"><Notice type="error">{error}</Notice></div>}
 
         {tab === "overview" && (
           <div className="grid gap-4 md:grid-cols-3">
@@ -276,13 +276,17 @@ export function DashboardContent({ initialTab = "overview", requiredRole = "" } 
 
         {tab === "purchases" && (
           <div className="grid gap-5">
-            <TransactionTable title="Purchase History" items={state.purchases} mode="purchase" />
+            <TransactionTable title="Purchase History" items={state.purchases} mode="purchase" loading={loading} />
             <div className="card p-5">
               <h2 className="mb-4 text-xl font-black">Bought Artworks</h2>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-                {state.purchases.length ? state.purchases.map((item, index) => (
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="skeleton aspect-[4/3] rounded-lg" />
+                  ))
+                ) : state.purchases.length ? state.purchases.map((item, index) => (
                   <Link key={item._id} className="overflow-hidden rounded-lg border border-slate-200" href={`/artworks/${item.artworkId}`}>
-                    <img src={item.artworkImage || assetFallback(index)} alt={item.artworkTitle} className="aspect-[4/3] w-full object-cover object-[center_25%]" />
+                    <img src={item.artworkImage || assetFallback(index)} alt={item.artworkTitle} className="aspect-[4/3] w-full object-contain" />
                     <p className="p-3 font-black text-slate-900">{item.artworkTitle}</p>
                   </Link>
                 )) : <p className="text-slate-600">No bought artworks yet.</p>}
@@ -316,36 +320,26 @@ export function DashboardContent({ initialTab = "overview", requiredRole = "" } 
               <h2 className="mb-4 text-xl font-black">Manage Artworks</h2>
               <table className="w-full min-w-[520px] text-left text-sm">
                 <thead><tr className="border-b"><th className="py-3">Title</th><th>Artist</th><th>Price</th><th>Actions</th></tr></thead>
-                <tbody>{state.artworks.map((art) => <tr className="border-b" key={art._id}><td className="py-3"><Link className="font-black text-teal-800" href={`/artworks/${art._id}`}>{art.title}</Link></td><td>{art.artistName}</td><td>{money(art.price)}</td><td className="flex gap-3 py-3"><button className="font-black text-teal-800" onClick={() => startEditArtwork(art)}>Edit</button><button className="font-black text-red-700" onClick={() => deleteArtwork(art._id)}>Delete</button></td></tr>)}</tbody>
+                <tbody>{loading ? <TableSkeletonRows columns={4} /> : state.artworks.map((art) => <tr className="border-b" key={art._id}><td className="py-3"><Link className="font-black text-teal-800" href={`/artworks/${art._id}`}>{art.title}</Link></td><td>{art.artistName}</td><td>{money(art.price)}</td><td className="flex gap-3 py-3"><button className="font-black text-teal-800" onClick={() => startEditArtwork(art)}>Edit</button><button className="font-black text-red-700" onClick={() => deleteArtwork(art._id)}>Delete</button></td></tr>)}</tbody>
               </table>
             </div>
           </div>
         )}
 
-        {tab === "sales" && <TransactionTable title="Sales History" items={state.sales} mode="sale" />}
+        {tab === "sales" && <TransactionTable title="Sales History" items={state.sales} mode="sale" loading={loading} />}
 
         {tab === "admin" && (
           <div className="grid gap-5">
-            {state.analytics && (
-              <>
-                <div className="grid gap-4 md:grid-cols-4">
-                  <Stat label="Total users" value={state.analytics.totals.users} />
-                  <Stat label="Artists" value={state.analytics.totals.artists} />
-                  <Stat label="Sold" value={state.analytics.totals.artworksSold} />
-                  <Stat label="Revenue" value={money(state.analytics.totals.revenue)} />
-                </div>
-                <AnalyticsCharts analytics={state.analytics} />
-              </>
-            )}
+            {state.analytics && <AnalyticsCharts analytics={state.analytics} />}
             <div className="card overflow-auto p-5">
               <h2 className="mb-4 text-xl font-black">Manage Users</h2>
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead><tr className="border-b"><th className="py-3">Name</th><th>Email</th><th>Role</th><th>Change role</th></tr></thead>
-                <tbody>{state.users.map((item) => <tr className="border-b" key={item._id}><td className="py-3">{item.name}</td><td>{item.email}</td><td>{item.role}</td><td><select className="field max-w-36" value={item.role} onChange={(event) => updateRole(item._id, event.target.value)}><option>user</option><option>artist</option><option>admin</option></select></td></tr>)}</tbody>
+                <tbody>{loading ? <TableSkeletonRows columns={4} /> : state.users.map((item) => <tr className="border-b" key={item._id}><td className="py-3">{item.name}</td><td>{item.email}</td><td>{item.role}</td><td><select className="field max-w-36" value={item.role} onChange={(event) => updateRole(item._id, event.target.value)}><option>user</option><option>artist</option><option>admin</option></select></td></tr>)}</tbody>
               </table>
             </div>
-            <ArtworkManagementTable artworks={state.artworks} onEdit={startEditArtwork} onDelete={deleteArtwork} onToggleFeatured={toggleFeatured} admin />
-            <TransactionTable title="All Transactions" items={state.transactions} mode="admin" />
+            <ArtworkManagementTable artworks={state.artworks} onEdit={startEditArtwork} onDelete={deleteArtwork} onToggleFeatured={toggleFeatured} admin loading={loading} />
+            <TransactionTable title="All Transactions" items={state.transactions} mode="admin" loading={loading} />
           </div>
         )}
       </section>
@@ -361,14 +355,14 @@ function Tier({ title, limit, price, onClick }) {
   return <div className="rounded-lg border border-slate-200 p-4"><h3 className="font-black">{title}</h3><p className="mt-1 text-sm text-slate-600">{limit}</p><p className="mt-3 text-2xl font-black">{price}</p>{onClick && <button className="btn btn-primary mt-4 w-full" onClick={onClick}>Upgrade</button>}</div>;
 }
 
-function ArtworkManagementTable({ artworks, onEdit, onDelete, onToggleFeatured, admin = false }) {
+function ArtworkManagementTable({ artworks, onEdit, onDelete, onToggleFeatured, admin = false, loading = false }) {
   return (
     <div className="card overflow-auto p-5">
       <h2 className="mb-4 text-xl font-black">{admin ? "Manage All Artworks" : "Manage Artworks"}</h2>
       <table className="w-full min-w-[680px] text-left text-sm">
         <thead><tr className="border-b"><th className="py-3">Title</th><th>Artist</th><th>Price</th>{admin && <th>Featured</th>}<th>Actions</th></tr></thead>
         <tbody>
-          {artworks.length ? artworks.map((art) => (
+          {loading ? <TableSkeletonRows columns={admin ? 5 : 4} /> : artworks.length ? artworks.map((art) => (
             <tr className="border-b" key={art._id}>
               <td className="py-3"><Link className="font-black text-teal-800" href={`/artworks/${art._id}`}>{art.title}</Link></td>
               <td>{art.artistName}</td>
@@ -436,7 +430,7 @@ function AnalyticsCharts({ analytics }) {
   );
 }
 
-function TransactionTable({ title, items, mode }) {
+function TransactionTable({ title, items, mode, loading = false }) {
   if (mode === "admin") {
     return (
       <div className="card overflow-auto p-5">
@@ -444,7 +438,7 @@ function TransactionTable({ title, items, mode }) {
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead><tr className="border-b"><th className="py-3">Transaction ID</th><th>Type</th><th>User / Artist</th><th>Amount</th><th>Date</th></tr></thead>
           <tbody>
-            {items.length ? items.map((item) => (
+            {loading ? <TableSkeletonRows columns={5} /> : items.length ? items.map((item) => (
               <tr className="border-b" key={item._id}>
                 <td className="py-3 font-mono text-xs">{String(item._id).slice(-10)}</td>
                 <td className="font-bold capitalize">{item.type}</td>
@@ -465,7 +459,7 @@ function TransactionTable({ title, items, mode }) {
       <table className="w-full min-w-[640px] text-left text-sm">
         <thead><tr className="border-b"><th className="py-3">Artwork / Type</th><th>{mode === "sale" ? "Buyer" : "Artist / User"}</th><th>Amount</th><th>Date</th></tr></thead>
         <tbody>
-          {items.length ? items.map((item) => (
+          {loading ? <TableSkeletonRows columns={4} /> : items.length ? items.map((item) => (
             <tr className="border-b" key={item._id}>
               <td className="py-3">{item.artworkTitle || item.type}</td>
               <td>{mode === "sale" ? item.buyerName : item.artistName || item.userEmail || item.buyerEmail}</td>
@@ -477,4 +471,16 @@ function TransactionTable({ title, items, mode }) {
       </table>
     </div>
   );
+}
+
+function TableSkeletonRows({ columns, rows = 5 }) {
+  return Array.from({ length: rows }).map((_, rowIndex) => (
+    <tr className="border-b" key={rowIndex}>
+      {Array.from({ length: columns }).map((__, columnIndex) => (
+        <td className="py-3 pr-4" key={columnIndex}>
+          <div className="skeleton h-5 rounded" />
+        </td>
+      ))}
+    </tr>
+  ));
 }

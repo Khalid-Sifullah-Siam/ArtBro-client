@@ -7,7 +7,6 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { Notice } from "@/components/Notice";
 import { GoogleButton } from "@/components/GoogleButton";
-import { getRoleRedirectPath } from "@/lib/roleRedirect";
 
 export default function RegisterPage() {
   return (
@@ -30,7 +29,11 @@ function RegisterContent() {
     setError("");
     try {
       const user = await register(form);
-      router.push(getRoleRedirectPath(user.role));
+      if (user.role === "user") {
+        router.push("/");
+      } else {
+        router.push(`/dashboard/${user.role}`);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -54,7 +57,7 @@ function RegisterContent() {
         </div>
         <label className="label">Role<select className="field" value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option value="user">User / Buyer</option><option value="artist">Artist</option></select></label>
         <button className="btn btn-primary" disabled={loading}>{loading ? "Creating..." : "Register"}</button>
-        <div className="grid gap-3 border-t border-slate-200 pt-4 justify-items-center">
+        <div className="grid gap-3 border-t border-slate-200 pt-4">
           <p className="text-center text-sm font-bold text-slate-500">Or register with Google</p>
           <GoogleButton role={form.role} />
         </div>

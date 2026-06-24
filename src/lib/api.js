@@ -16,7 +16,7 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TI
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    return await fetch(url, { ...options, signal: controller.signal, credentials: "include" });
   } catch (error) {
     if (error.name === "AbortError") {
       throw new Error("The server is taking too long to respond. Please try again.");
@@ -34,11 +34,11 @@ export async function apiFetch(path, { token, method = "GET", body, headers = {}
       method,
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
       body: body ? JSON.stringify(body) : undefined,
       cache: "no-store",
-      credentials: "include",
     },
     timeoutMs
   );

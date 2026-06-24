@@ -1,21 +1,40 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import {
-  getCurrentSession,
-  signInWithEmail,
-  signInWithGoogle,
-  signOut,
-  signUpWithEmail,
-} from "@/lib/auth-api";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 const AuthContext = createContext(null);
 
-function normalizeUser(user) {
-  if (!user) return null;
+async function authRequest(path, { method = "GET", body } = {}) {
+  const response = await fetch(path, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+    credentials: "include",
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : {};
+  if (!response.ok) {
+    throw new Error(data.message || "Authentication request failed");
+  }
+  return data;
+}
+
+function unwrapResult(result) {
+  if (result?.error) {
+    throw new Error(result.error.message || "Authentication request failed");
+  }
+  return result?.data ?? result;
+}
+
+function mapSession(sessionData) {
   return {
-    ...user,
-    _id: user._id || user.id,
+    token: sessionData?.session?.token || sessionData?.token || "",
+    user: sessionData?.user || null,
   };
 }
 
@@ -25,57 +44,73 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    getCurrentSession()
-      .then((session) => {
-        if (session?.user) {
-          setToken("session");
-          setUser(normalizeUser(session.user));
-        }
+    authClient.getSession()
+      .then((result) => {
+        const data = unwrapResult(result);
+        const session = mapSession(data);
+        setToken(session.token);
+        setUser(session.user);
+      })
+      .catch(() => {
+        setToken("");
+        setUser(null);
       })
       .finally(() => setReady(true));
   }, []);
 
-  function persist(nextUser) {
-    setToken("session");
-    setUser(normalizeUser(nextUser));
-  }
-
   async function login(payload) {
-    const data = await signInWithEmail(payload.email, payload.password);
-    persist(data.user);
-    return normalizeUser(data.user);
+    const signInResult = await authClient.signIn.email({
+      email: payload.email,
+      password: payload.password,
+    });
+    const signInData = unwrapResult(signInResult);
+    const sessionResult = await authClient.getSession();
+    const sessionData = unwrapResult(sessionResult);
+    const session = mapSession(sessionData);
+    setToken(session.token);
+    setUser(session.user || signInData?.user || null);
+    return session.user || signInData?.user || null;
   }
 
   async function register(payload) {
-    if (payload.password !== payload.confirmPassword) {
-      throw new Error("Passwords do not match");
-    }
-    const data = await signUpWithEmail(payload);
-    persist(data.user);
-    return normalizeUser(data.user);
+    const signUpResult = await authClient.signUp.email({
+      name: payload.name,
+      email: payload.email,
+      password: payload.password,
+      role: payload.role || "user",
+    });
+    const signUpData = unwrapResult(signUpResult);
+    const sessionResult = await authClient.getSession();
+    const sessionData = unwrapResult(sessionResult);
+    const session = mapSession(sessionData);
+    setToken(session.token);
+    setUser(session.user || signUpData?.user || null);
+    return session.user || signUpData?.user || null;
   }
 
-  async function googleLogin(role) {
-    const data = await signInWithGoogle(role);
-
-    if (!data.url) {
-      throw new Error("Google login could not be started");
-    }
-
-    window.location.assign(data.url);
+  async function googleLogin(payload) {
+    const data = await authRequest("/api/auth/google", { method: "POST", body: payload });
+    const session = await authRequest("/api/auth/session");
+    setToken(session.token || "");
+    setUser(data.user || session.user || null);
+    return data.user;
   }
 
   async function logout() {
     try {
-      await signOut();
-    } catch {
-      // Clear local login data even if the server is unavailable.
+      const result = await authClient.signOut();
+      unwrapResult(result);
+    } catch (_error) {
+      // Clear client state even if logout request fails.
     }
     setToken("");
     setUser(null);
   }
 
-  const value = { ready, token, user, login, register, googleLogin, logout, setUser };
+  const value = useMemo(
+    () => ({ ready, token, user, login, register, googleLogin, logout, setUser }),
+    [ready, token, user]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

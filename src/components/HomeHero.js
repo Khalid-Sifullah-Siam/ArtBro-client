@@ -76,7 +76,7 @@ export function HomeHero() {
           src={src}
           alt=""
           aria-hidden="true"
-          className={`hero-artwork absolute -inset-4 h-[calc(100%+32px)] w-[calc(100%+32px)] object-cover ${
+          className={`hero-artwork absolute -inset-4 h-[calc(100%+32px)] w-[calc(100%+32px)] object-contain ${
             reduceMotion && index === 0 ? "opacity-45" : "opacity-0"
           }`}
         />

@@ -85,15 +85,7 @@ export default function BrowsePage() {
             </StaggerGrid>
             <div className="mt-8 flex justify-center gap-2">
               <button className="btn btn-secondary" disabled={filters.page <= 1} onClick={() => updateFilter("page", filters.page - 1)}>Previous</button>
-              {Array.from({ length: data.totalPages }, (_, index) => index + 1).map((pageNumber) => (
-                <button
-                  key={pageNumber}
-                  className={`btn ${filters.page === pageNumber ? "btn-primary" : "btn-secondary"}`}
-                  onClick={() => updateFilter("page", pageNumber)}
-                >
-                  {pageNumber}
-                </button>
-              ))}
+              <span className="grid min-h-10 place-items-center px-3 font-black">Page {filters.page} of {data.totalPages}</span>
               <button className="btn btn-secondary" disabled={filters.page >= data.totalPages} onClick={() => updateFilter("page", filters.page + 1)}>Next</button>
             </div>
           </>
