@@ -96,3 +96,5 @@ export default function BrowsePage() {
     </AppShell>
   );
 }
+
+
