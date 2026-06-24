@@ -30,7 +30,12 @@ export function GoogleButton({ role = "user" }) {
 
     function renderButton() {
       window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredential });
-      window.google.accounts.id.renderButton(buttonRef.current, { theme: "outline", size: "large", width: 320 });
+      window.google.accounts.id.renderButton(buttonRef.current, {
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        width: 320,
+      });
     }
 
     if (window.google?.accounts?.id) {
@@ -39,7 +44,7 @@ export function GoogleButton({ role = "user" }) {
     }
 
     const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
+    script.src = "https://accounts.google.com/gsi/client?hl=en";
     script.async = true;
     script.defer = true;
     script.onload = renderButton;
