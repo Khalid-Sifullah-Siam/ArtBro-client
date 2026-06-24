@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 import { Notice } from "./Notice";
+import { getRoleRedirectPath } from "@/lib/roleRedirect";
 
 export function GoogleButton({ role = "user" }) {
   const router = useRouter();
@@ -19,7 +20,9 @@ export function GoogleButton({ role = "user" }) {
       googleLogin({
         credential: response.credential,
         role,
-      }).then((user) => router.push(`/dashboard/${user.role}`)).catch((err) => setError(err.message));
+      })
+        .then((user) => router.push(getRoleRedirectPath(user.role)))
+        .catch((err) => setError(err.message));
     }
 
     function renderButton() {

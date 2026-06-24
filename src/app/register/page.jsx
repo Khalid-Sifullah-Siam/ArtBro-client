@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { Notice } from "@/components/Notice";
 import { GoogleButton } from "@/components/GoogleButton";
+import { getRoleRedirectPath } from "@/lib/roleRedirect";
 
 export default function RegisterPage() {
   return (
@@ -28,8 +29,8 @@ function RegisterContent() {
     setLoading(true);
     setError("");
     try {
-      await register(form);
-      router.push("/");
+      const user = await register(form);
+      router.push(getRoleRedirectPath(user.role));
     } catch (err) {
       setError(err.message);
     } finally {

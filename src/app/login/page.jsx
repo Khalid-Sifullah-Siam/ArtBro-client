@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/components/AuthProvider";
 import { Notice } from "@/components/Notice";
 import { GoogleButton } from "@/components/GoogleButton";
+import { getRoleRedirectPath } from "@/lib/roleRedirect";
 
 export default function LoginPage() {
   return (
@@ -29,7 +30,7 @@ function LoginContent() {
     setError("");
     try {
       const user = await login(form);
-      router.push(`/dashboard/${user.role}`);
+      router.push(getRoleRedirectPath(user.role));
     } catch (err) {
       setError(err.message);
     } finally {
