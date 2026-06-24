@@ -283,7 +283,7 @@ export function DashboardContent({ initialTab = "overview", requiredRole = "" } 
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {state.purchases.length ? state.purchases.map((item, index) => (
                   <Link key={item._id} className="overflow-hidden rounded-lg border border-slate-200" href={`/artworks/${item.artworkId}`}>
-                    <img src={item.artworkImage || assetFallback(index)} alt={item.artworkTitle} className="aspect-[4/3] w-full object-cover" />
+                    <img src={item.artworkImage || assetFallback(index)} alt={item.artworkTitle} className="aspect-[4/3] w-full object-cover object-[center_25%]" />
                     <p className="p-3 font-black text-slate-900">{item.artworkTitle}</p>
                   </Link>
                 )) : <p className="text-slate-600">No bought artworks yet.</p>}

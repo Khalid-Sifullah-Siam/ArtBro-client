@@ -130,8 +130,8 @@ function ArtworkDetailsContent() {
           <Notice type="error">{error}</Notice>
         ) : artwork ? (
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-              <img src={artwork.imageUrl || assetFallback(1)} alt={artwork.title} className="max-h-[680px] w-full object-cover" />
+            <div className="aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+              <img src={artwork.imageUrl || assetFallback(1)} alt={artwork.title} className="h-full w-full object-cover object-[center_25%]" />
             </div>
             <div className="grid content-start gap-5">
               {error && <Notice type="error">{error}</Notice>}

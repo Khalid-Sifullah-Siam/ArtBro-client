@@ -24,7 +24,7 @@ export function ArtworkCard({ artwork, index = 0 }) {
         <img
           src={artwork.imageUrl || assetFallback(index)}
           alt={artwork.title}
-          className="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-105"
+          className="h-full w-full object-cover object-[center_25%] transition duration-500 ease-out group-hover:scale-105"
         />
       </div>
       <div className="grid gap-2 p-4">

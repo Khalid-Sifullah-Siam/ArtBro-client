@@ -43,7 +43,7 @@ export default async function Home() {
             {Array.from({ length: 6 }).map((_, index) => (
               <StaggerItem key={index}>
                 <div className="card overflow-hidden">
-                  <img src={assetFallback(index)} alt="Sample artwork" className="aspect-[4/3] w-full object-cover" />
+                  <img src={assetFallback(index)} alt="Sample artwork" className="aspect-[4/3] w-full object-cover object-[center_25%]" />
                   <div className="p-4">
                     <h3 className="font-black">Artwork collection</h3>
                     <p className="mt-1 text-sm text-slate-600">Connect the backend to load live art.</p>
