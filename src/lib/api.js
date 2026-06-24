@@ -11,6 +11,7 @@ export function assetFallback(index = 0) {
   return images[index % images.length];
 }
 
+
 export async function fetchWithTimeout(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
