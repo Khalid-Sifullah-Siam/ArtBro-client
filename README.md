@@ -245,3 +245,4 @@ Made with creativity and code for artists and art lovers.
 If you find this project useful, consider giving the repository a ⭐.
 
 </div>
+
