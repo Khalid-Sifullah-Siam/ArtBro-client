@@ -44,7 +44,6 @@ function PaymentSuccessContent() {
       .then((data) => {
         if (data.user) {
           setUser(data.user);
-          localStorage.setItem("arthub_user", JSON.stringify(data.user));
         }
         setStatus(data.type === "subscription" ? "Subscription upgraded successfully." : "Purchase recorded successfully.");
       })
@@ -67,4 +66,3 @@ function PaymentSuccessContent() {
     </section>
   );
 }
-

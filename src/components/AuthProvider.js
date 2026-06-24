@@ -55,10 +55,14 @@ export function AuthProvider({ children }) {
     return normalizeUser(data.user);
   }
 
-  async function googleLogin(payload) {
-    const data = await signInWithGoogle(payload.credential, payload.role);
-    persist(data.user);
-    return normalizeUser(data.user);
+  async function googleLogin(role) {
+    const data = await signInWithGoogle(role);
+
+    if (!data.url) {
+      throw new Error("Google login could not be started");
+    }
+
+    window.location.assign(data.url);
   }
 
   async function logout() {

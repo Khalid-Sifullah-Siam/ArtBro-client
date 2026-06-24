@@ -33,15 +33,10 @@ export function signUpWithEmail(form) {
   });
 }
 
-export function signInWithGoogle(credential, role) {
+export function signInWithGoogle(role) {
   return authRequest("/sign-in/social", {
     provider: "google",
-    idToken: {
-      token: credential,
-    },
-    additionalData: {
-      role,
-    },
+    callbackURL: `${window.location.origin}/auth/google-callback?role=${role}`,
   });
 }
 

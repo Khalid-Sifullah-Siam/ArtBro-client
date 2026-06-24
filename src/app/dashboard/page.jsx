@@ -148,7 +148,6 @@ export function DashboardContent({ initialTab = "overview", requiredRole = "" } 
     event.preventDefault();
     const data = await apiFetch("/api/users/me", { token, method: "PATCH", body: profile });
     setUser(data.user);
-    localStorage.setItem("arthub_user", JSON.stringify(data.user));
     setNotice("Profile updated.");
   }
 
@@ -327,7 +326,17 @@ export function DashboardContent({ initialTab = "overview", requiredRole = "" } 
 
         {tab === "admin" && (
           <div className="grid gap-5">
-            {state.analytics && <AnalyticsCharts analytics={state.analytics} />}
+            {state.analytics && (
+              <>
+                <div className="grid gap-4 md:grid-cols-4">
+                  <Stat label="Total users" value={state.analytics.totals.users} />
+                  <Stat label="Artists" value={state.analytics.totals.artists} />
+                  <Stat label="Sold" value={state.analytics.totals.artworksSold} />
+                  <Stat label="Revenue" value={money(state.analytics.totals.revenue)} />
+                </div>
+                <AnalyticsCharts analytics={state.analytics} />
+              </>
+            )}
             <div className="card overflow-auto p-5">
               <h2 className="mb-4 text-xl font-black">Manage Users</h2>
               <table className="w-full min-w-[640px] text-left text-sm">

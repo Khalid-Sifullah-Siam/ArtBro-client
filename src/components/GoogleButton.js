@@ -1,56 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useAuth } from "./AuthProvider";
 import { Notice } from "./Notice";
-import { getRoleRedirectPath } from "@/lib/roleRedirect";
 
 export function GoogleButton({ role = "user" }) {
-  const router = useRouter();
   const { googleLogin } = useAuth();
-  const buttonRef = useRef(null);
   const [error, setError] = useState("");
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
-  useEffect(() => {
-    if (!clientId || !buttonRef.current) return;
+  async function startGoogleLogin() {
+    setError("");
 
-    function handleCredential(response) {
-      googleLogin({
-        credential: response.credential,
-        role,
-      })
-        .then((user) => router.push(getRoleRedirectPath(user.role)))
-        .catch((err) => setError(err.message));
+    try {
+      await googleLogin(role);
+    } catch (loginError) {
+      setError(loginError.message);
     }
-
-    function renderButton() {
-      window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredential });
-      window.google.accounts.id.renderButton(buttonRef.current, { theme: "outline", size: "large", width: 320 });
-    }
-
-    if (window.google?.accounts?.id) {
-      renderButton();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = renderButton;
-    script.onerror = () => setError("Google login script failed to load.");
-    document.head.appendChild(script);
-  }, [clientId, googleLogin, role, router]);
-
-  if (!clientId) {
-    return <Notice>NEXT_PUBLIC_GOOGLE_CLIENT_ID is not configured yet.</Notice>;
   }
 
   return (
-    <div className="grid justify-items-center gap-3">
-      <div ref={buttonRef} className="flex justify-center" />
+    <div className="grid w-full justify-items-center gap-3">
+      <button
+        type="button"
+        className="btn w-full border border-slate-300 bg-white text-slate-800"
+        onClick={startGoogleLogin}
+      >
+        Continue with Google
+      </button>
       {error && <Notice type="error">{error}</Notice>}
     </div>
   );
