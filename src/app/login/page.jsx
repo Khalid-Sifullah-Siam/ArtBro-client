@@ -58,5 +58,3 @@ function LoginContent() {
     </section>
   );
 }
-
-
