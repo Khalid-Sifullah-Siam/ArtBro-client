@@ -1,10 +1,23 @@
 "use client";
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { apiFetch } from "@/lib/api";
+import { createContext, useContext, useEffect, useState } from "react";
+import {
+  getCurrentSession,
+  signInWithEmail,
+  signInWithGoogle,
+  signOut,
+  signUpWithEmail,
+} from "@/lib/auth-api";
 
 const AuthContext = createContext(null);
+
+function normalizeUser(user) {
+  if (!user) return null;
+  return {
+    ...user,
+    _id: user._id || user.id,
+  };
+}
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState("");
@@ -12,56 +25,53 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("arthub_token") || "";
-    const savedUser = localStorage.getItem("arthub_user");
-    if (savedToken) setToken(savedToken);
-    if (savedUser) setUser(JSON.parse(savedUser));
-    setReady(true);
+    getCurrentSession()
+      .then((session) => {
+        if (session?.user) {
+          setToken("session");
+          setUser(normalizeUser(session.user));
+        }
+      })
+      .finally(() => setReady(true));
   }, []);
 
-  useEffect(() => {
-    if (!token || !ready) return;
-    apiFetch("/api/auth/me", { token })
-      .then((data) => setUser(data.user))
-      .catch(() => logout());
-  }, [token, ready]);
-
-  function persist(nextToken, nextUser) {
-    setToken(nextToken);
-    setUser(nextUser);
-    localStorage.setItem("arthub_token", nextToken);
-    localStorage.setItem("arthub_user", JSON.stringify(nextUser));
+  function persist(nextUser) {
+    setToken("session");
+    setUser(normalizeUser(nextUser));
   }
 
   async function login(payload) {
-    const data = await apiFetch("/api/auth/login", { method: "POST", body: payload });
-    persist(data.token, data.user);
-    return data.user;
+    const data = await signInWithEmail(payload.email, payload.password);
+    persist(data.user);
+    return normalizeUser(data.user);
   }
 
   async function register(payload) {
-    const data = await apiFetch("/api/auth/register", { method: "POST", body: payload });
-    persist(data.token, data.user);
-    return data.user;
+    if (payload.password !== payload.confirmPassword) {
+      throw new Error("Passwords do not match");
+    }
+    const data = await signUpWithEmail(payload);
+    persist(data.user);
+    return normalizeUser(data.user);
   }
 
   async function googleLogin(payload) {
-    const data = await apiFetch("/api/auth/google", { method: "POST", body: payload });
-    persist(data.token, data.user);
-    return data.user;
+    const data = await signInWithGoogle(payload.credential, payload.role);
+    persist(data.user);
+    return normalizeUser(data.user);
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await signOut();
+    } catch {
+      // Clear local login data even if the server is unavailable.
+    }
     setToken("");
     setUser(null);
-    localStorage.removeItem("arthub_token");
-    localStorage.removeItem("arthub_user");
   }
 
-  const value = useMemo(
-    () => ({ ready, token, user, login, register, googleLogin, logout, setUser }),
-    [ready, token, user]
-  );
+  const value = { ready, token, user, login, register, googleLogin, logout, setUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

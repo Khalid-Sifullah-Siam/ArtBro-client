@@ -34,11 +34,11 @@ export async function apiFetch(path, { token, method = "GET", body, headers = {}
       method,
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
       body: body ? JSON.stringify(body) : undefined,
       cache: "no-store",
+      credentials: "include",
     },
     timeoutMs
   );
